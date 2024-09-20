@@ -41,21 +41,27 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   try {
     console.log("Request body:", req.body);
-    const { email, instagramHandle, password } = req.body;
+    const { emailOrInstagram, password } = req.body;
 
     if (!password) {
       return res.status(400).json({ message: "Password is required" });
     }
 
-    if (!email && !instagramHandle) {
+    if (!emailOrInstagram) {
       return res
         .status(400)
         .json({ message: "Email or Instagram handle is required" });
     }
 
-    const user = await User.findOne({
-      $or: [{ email }, { instagramHandle }],
-    });
+    // Check if the input is an email or Instagram handle
+    const isEmail = emailOrInstagram.includes("@");
+
+    let user;
+    if (isEmail) {
+      user = await User.findOne({ email: emailOrInstagram });
+    } else {
+      user = await User.findOne({ instagramHandle: emailOrInstagram });
+    }
 
     console.log("User found:", user);
 

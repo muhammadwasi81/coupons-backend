@@ -1,5 +1,5 @@
 import Coupon from "../models/couponsModel.js";
-
+const SERVER_URL = "https://coupons-backend-qs15.onrender.com";
 export const createCoupon = async (req, res) => {
   try {
     const {
@@ -55,7 +55,16 @@ export const createCoupon = async (req, res) => {
 export const getAllCoupons = async (req, res) => {
   try {
     const coupons = await Coupon.find();
-    res.status(200).json(coupons);
+
+    const couponsWithFullImageUrls = coupons.map((coupon) => {
+      const couponObject = coupon.toObject();
+      couponObject.images = couponObject.images.map(
+        (image) => `${SERVER_URL}/${image}`
+      );
+      return couponObject;
+    });
+    console.log(couponsWithFullImageUrls, "couponsWithFullImageUrls");
+    res.status(200).json(couponsWithFullImageUrls);
   } catch (error) {
     res
       .status(500)

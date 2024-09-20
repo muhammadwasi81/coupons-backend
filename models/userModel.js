@@ -4,8 +4,9 @@ const userSchema = new mongoose.Schema(
   {
     email: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
+      sparse: true,
       trim: true,
       lowercase: true,
     },
@@ -13,6 +14,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: false,
       unique: true,
+      sparse: true,
       trim: true,
     },
     password: {
@@ -31,6 +33,14 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.pre("save", function (next) {
+  if (!this.email && !this.instagramHandle) {
+    next(new Error("Either email or Instagram handle is required"));
+  } else {
+    next();
+  }
+});
 
 userSchema.methods.isAdmin = function () {
   return this.role === "admin";

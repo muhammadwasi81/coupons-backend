@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 
-const protect = asyncHandler(async (req, res, next) => {
+const userMiddleware = asyncHandler(async (req, res, next) => {
   let token;
 
   if (
@@ -30,7 +30,7 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-const admin = asyncHandler(async (req, res, next) => {
+const adminMiddleware = asyncHandler(async (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();
   } else {
@@ -39,4 +39,4 @@ const admin = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { protect, admin };
+export { userMiddleware, adminMiddleware };

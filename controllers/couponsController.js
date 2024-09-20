@@ -58,11 +58,14 @@ export const getAllCoupons = async (req, res) => {
 
     const couponsWithFullImageUrls = coupons.map((coupon) => {
       const couponObject = coupon.toObject();
-      couponObject.images = couponObject.images.map(
-        (image) => `${SERVER_URL}/${image}`
-      );
+      couponObject.images = couponObject.images.map((image) => {
+        const filename = image.split("/").pop();
+        const encodedFilename = encodeURIComponent(filename);
+        return `${SERVER_URL}/images/${encodedFilename}`;
+      });
       return couponObject;
     });
+
     console.log(couponsWithFullImageUrls, "couponsWithFullImageUrls");
     res.status(200).json(couponsWithFullImageUrls);
   } catch (error) {

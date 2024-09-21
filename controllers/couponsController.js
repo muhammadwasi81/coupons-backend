@@ -1,6 +1,5 @@
 import Coupon from "../models/couponsModel.js";
 import path from "path";
-import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,15 +40,7 @@ export const createCoupon = async (req, res) => {
     };
 
     if (req.files && req.files.length > 0) {
-      couponData.images = await Promise.all(
-        req.files.map(async (file) => {
-          const uniqueFilename = `${Date.now()}-${file.originalname}`;
-          const filePath = path.join(imagesDir, uniqueFilename);
-
-          await fs.promises.writeFile(filePath, file.buffer);
-          return uniqueFilename;
-        })
-      );
+      couponData.images = req.files.map((file) => file.filename);
     }
 
     console.log("Coupon Data:", couponData);

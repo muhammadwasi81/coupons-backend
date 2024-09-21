@@ -1,5 +1,12 @@
 import Coupon from "../models/couponsModel.js";
-const SERVER_URL = "https://coupons-backend-qs15.onrender.com";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const imagesDir = path.join(__dirname, "..", "images");
+
 export const createCoupon = async (req, res) => {
   try {
     const {
@@ -34,7 +41,15 @@ export const createCoupon = async (req, res) => {
     };
 
     if (req.files && req.files.length > 0) {
-      couponData.images = req.files.map((file) => file.filename);
+      couponData.images = await Promise.all(
+        req.files.map(async (file) => {
+          const uniqueFilename = `${Date.now()}-${file.originalname}`;
+          const filePath = path.join(imagesDir, uniqueFilename);
+
+          await fs.promises.writeFile(filePath, file.buffer);
+          return uniqueFilename;
+        })
+      );
     }
 
     console.log("Coupon Data:", couponData);
@@ -59,9 +74,9 @@ export const getAllCoupons = async (req, res) => {
     const couponsWithFullImageUrls = coupons.map((coupon) => {
       const couponObject = coupon.toObject();
       couponObject.images = couponObject.images.map((image) => {
-        const filename = image.split("/").pop();
-        const encodedFilename = encodeURIComponent(filename);
-        return `${SERVER_URL}/images/${encodedFilename}`;
+        return `${req.protocol}://${req.get(
+          "host"
+        )}/images/${encodeURIComponent(image)}`;
       });
       return couponObject;
     });

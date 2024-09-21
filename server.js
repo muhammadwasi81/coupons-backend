@@ -8,6 +8,7 @@ import couponRoutes from "./routes/couponsRouter.js";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 dotenv.config();
 const port = process.env.PORT || 8080;
@@ -27,10 +28,14 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 
-// Serve static files from the 'images' folder
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use("/images", express.static(path.join(__dirname, "./images")));
+const imagesDir = path.join(__dirname, "images");
+if (!fs.existsSync(imagesDir)) {
+  fs.mkdirSync(imagesDir, { recursive: true });
+}
+
+app.use("/images", express.static(imagesDir));
 
 app.use("/api/user", authRoutes);
 app.use("/api/coupon", couponRoutes);

@@ -19,14 +19,14 @@ const userMiddleware = asyncHandler(async (req, res, next) => {
       next();
     } catch (error) {
       console.error(error);
-      res.status(401);
-      throw new Error("Not authorized");
+      return res
+        .status(401)
+        .json({ message: "Not authorized", error: error.message });
     }
   }
 
   if (!token) {
-    res.status(401);
-    throw new Error("Not authorized, no token");
+    return res.status(401).json({ message: "Not authorized, no token" });
   }
 });
 
@@ -34,8 +34,7 @@ const adminMiddleware = asyncHandler(async (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();
   } else {
-    res.status(403);
-    throw new Error("Not authorized as an admin");
+    return res.status(403).json({ message: "Not authorized as an admin" });
   }
 });
 

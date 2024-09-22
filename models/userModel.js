@@ -26,6 +26,18 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    claimedCoupons: [
+      {
+        coupon: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Coupon",
+        },
+        claimedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     createdAt: {
       type: Date,
       default: Date.now,

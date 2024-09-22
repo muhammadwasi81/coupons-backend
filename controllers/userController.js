@@ -111,28 +111,54 @@ export const getMe = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { email, instagramHandle } = req.body;
-    console.log(userId, "userId");
-    console.log(req.body, " req.body");
-    if (!email && !instagramHandle) {
+    const { email, instagramHandle, currentPassword, newPassword } = req.body;
+    console.log(req.body);
+    if (!email && !instagramHandle && !newPassword) {
       return res.status(400).json({ message: "No fields to update" });
     }
 
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const updateFields = {};
+
     if (email) updateFields.email = email;
     if (instagramHandle) updateFields.instagramHandle = instagramHandle;
 
-    const existingUser = await User.findOne({
-      $or: [
-        { email: email, _id: { $ne: userId } },
-        { instagramHandle: instagramHandle, _id: { $ne: userId } },
-      ],
-    });
-    console.log(existingUser, "existingUser");
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "Email or Instagram handle already in use" });
+    if (email || instagramHandle) {
+      const existingUser = await User.findOne({
+        $or: [
+          { email: email, _id: { $ne: userId } },
+          { instagramHandle: instagramHandle, _id: { $ne: userId } },
+        ],
+      });
+
+      if (existingUser) {
+        return res
+          .status(400)
+          .json({ message: "Email or Instagram handle already in use" });
+      }
+    }
+
+    if (newPassword) {
+      if (!currentPassword) {
+        return res
+          .status(400)
+          .json({ message: "Current password is required to update password" });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ message: "Current password is incorrect" });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      updateFields.password = await bcrypt.hash(newPassword, salt);
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -140,10 +166,6 @@ export const updateProfile = async (req, res) => {
       { $set: updateFields },
       { new: true, runValidators: true }
     ).select("-password");
-    console.log(updatedUser, "updatedUser");
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
 
     res
       .status(200)

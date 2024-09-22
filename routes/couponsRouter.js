@@ -3,7 +3,7 @@ import {
   createCoupon,
   getAllCoupons,
 } from "../controllers/couponsController.js";
-import upload from "../config/multerConfig.js";
+import upload from "../config/cloudinaryConfig.js";
 
 const router = express.Router();
 

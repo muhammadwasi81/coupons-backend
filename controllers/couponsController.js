@@ -1,10 +1,4 @@
 import Coupon from "../models/couponsModel.js";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const imagesDir = path.join(__dirname, "..", "images");
 
 export const createCoupon = async (req, res) => {
   try {
@@ -40,7 +34,7 @@ export const createCoupon = async (req, res) => {
     };
 
     if (req.files && req.files.length > 0) {
-      couponData.images = req.files.map((file) => file.filename);
+      couponData.images = req.files.map((file) => file.path);
     }
 
     console.log("Coupon Data:", couponData);
@@ -64,11 +58,7 @@ export const getAllCoupons = async (req, res) => {
 
     const couponsWithFullImageUrls = coupons.map((coupon) => {
       const couponObject = coupon.toObject();
-      couponObject.images = couponObject.images.map((image) => {
-        return `${req.protocol}://${req.get(
-          "host"
-        )}/images/${encodeURIComponent(image)}`;
-      });
+      couponObject.images = couponObject.images.map((image) => image);
       return couponObject;
     });
 

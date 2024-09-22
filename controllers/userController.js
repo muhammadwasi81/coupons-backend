@@ -107,3 +107,51 @@ export const getMe = async (req, res) => {
       .json({ message: "Error fetching user data", error: error.message });
   }
 };
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { email, instagramHandle } = req.body;
+    console.log(userId, "userId");
+    console.log(req.body, " req.body");
+    if (!email && !instagramHandle) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    const updateFields = {};
+    if (email) updateFields.email = email;
+    if (instagramHandle) updateFields.instagramHandle = instagramHandle;
+
+    const existingUser = await User.findOne({
+      $or: [
+        { email: email, _id: { $ne: userId } },
+        { instagramHandle: instagramHandle, _id: { $ne: userId } },
+      ],
+    });
+    console.log(existingUser, "existingUser");
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "Email or Instagram handle already in use" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    ).select("-password");
+    console.log(updatedUser, "updatedUser");
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res
+      .status(500)
+      .json({ message: "Error updating profile", error: error.message });
+  }
+};

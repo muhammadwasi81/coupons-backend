@@ -41,12 +41,12 @@ app.use("/images", express.static(imagesDir));
 app.use("/api/user", authRoutes);
 app.use("/api/coupon", couponRoutes);
 
-app.use(notFound);
-app.use(errorHandler);
-
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
+app.use(notFound);
+app.use(errorHandler);
 
 app.listen(port, () =>
   console.log(`Server started on port ${port}`.yellow.bold)

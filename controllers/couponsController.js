@@ -73,12 +73,31 @@ export const getAllCoupons = async (req, res) => {
   }
 };
 
+export const getUserClaimedCoupons = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log(userId, "LLLLLLL");
+    const coupons = await Coupon.find({ "claimedBy.user": userId });
+    if (!coupons) {
+      return res.status(404).json({ message: "Coupons not found" });
+    }
+    res.status(200).json(coupons);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching user's claimed coupons",
+      error: error.message,
+    });
+  }
+};
+
 export const claimCoupon = async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log(userId, "req.userId");
     const { couponId } = req.body;
 
+    if (!couponId) {
+      return res.status(400).json({ message: "Coupon ID is required" });
+    }
     const coupon = await Coupon.findById(couponId);
     if (!coupon) {
       return res.status(404).json({ message: "Coupon not found" });
@@ -88,13 +107,12 @@ export const claimCoupon = async (req, res) => {
       return res.status(400).json({ message: "No more coupons available" });
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (new Date() > coupon.expiresAt) {
+      return res.status(400).json({ message: "Coupon has expired" });
     }
 
-    const alreadyClaimed = user.claimedCoupons.some(
-      (claim) => claim.coupon.toString() === couponId
+    const alreadyClaimed = coupon.claimedBy.some(
+      (claim) => claim.user.toString() === userId
     );
     if (alreadyClaimed) {
       return res
@@ -103,10 +121,9 @@ export const claimCoupon = async (req, res) => {
     }
 
     coupon.availableCoupons -= 1;
-    user.claimedCoupons.push({ coupon: couponId });
+    coupon.claimedBy.push({ user: userId });
 
     await coupon.save();
-    await user.save();
 
     res.status(200).json({ message: "Coupon claimed successfully" });
   } catch (error) {
@@ -117,25 +134,79 @@ export const claimCoupon = async (req, res) => {
   }
 };
 
-export const getUserClaimedCoupons = async (req, res) => {
+export const deleteCoupon = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const coupon = await Coupon.findByIdAndDelete(req.params.id);
+    if (!coupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+    res.status(200).json({ message: "Coupon deleted successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error deleting coupon", error: error.message });
+  }
+};
 
-    const user = await User.findById(userId).populate("claimedCoupons.coupon");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+export const updateCoupon = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      businessName,
+      businessInstagram,
+      instructions,
+      categories,
+      totalCoupons,
+      minPurchaseQuantity,
+      couponValue,
+      couponValueUnit,
+    } = req.body;
+
+    const coupon = await Coupon.findById(id);
+
+    if (!coupon) {
+      return res.status(404).json({ message: "Coupon not found" });
     }
 
-    const claimedCoupons = user.claimedCoupons.map((claim) => ({
-      ...claim.coupon.toObject(),
-      claimedAt: claim.claimedAt,
-    }));
+    const categoriesObject = {
+      coffee: categories === "coffee",
+      breakfast: categories === "breakfast",
+      meal: categories === "meal",
+      dinner: categories === "dinner",
+      lifestyle: categories === "lifestyle",
+      beauty: categories === "beauty",
+    };
 
-    res.status(200).json(claimedCoupons);
+    const updateData = {
+      businessName: businessName || coupon.businessName,
+      businessInstagram: businessInstagram || coupon.businessInstagram,
+      instructions: instructions || coupon.instructions,
+      categories: categoriesObject,
+      totalCoupons: totalCoupons ? parseInt(totalCoupons) : coupon.totalCoupons,
+      minPurchaseQuantity: minPurchaseQuantity
+        ? parseInt(minPurchaseQuantity)
+        : coupon.minPurchaseQuantity,
+      couponValue: couponValue ? parseFloat(couponValue) : coupon.couponValue,
+      couponValueUnit: couponValueUnit || coupon.couponValueUnit,
+    };
+
+    if (req.files && req.files.length > 0) {
+      updateData.images = req.files.map((file) => file.path);
+    }
+
+    const updatedCoupon = await Coupon.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      message: "Coupon updated successfully",
+      coupon: updatedCoupon,
+    });
   } catch (error) {
-    console.error("Error fetching user's claimed coupons:", error);
-    res.status(500).json({
-      message: "Error fetching claimed coupons",
+    console.error("Error updating coupon:", error);
+    res.status(400).json({
+      message: "Error updating coupon",
       error: error.message,
     });
   }

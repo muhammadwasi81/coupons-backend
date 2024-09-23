@@ -63,7 +63,27 @@ const couponSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  expiresAt: {
+    type: Date,
+    default: function () {
+      return new Date(+this.createdAt + 24 * 60 * 60 * 1000);
+    },
+  },
+  claimedBy: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      claimedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 });
+
+couponSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const Coupon = mongoose.model("Coupon", couponSchema);
 

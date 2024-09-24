@@ -1,5 +1,4 @@
 import Coupon from "../models/couponsModel.js";
-import User from "../models/userModel.js";
 
 export const createCoupon = async (req, res) => {
   try {
@@ -77,11 +76,32 @@ export const getUserClaimedCoupons = async (req, res) => {
   try {
     const userId = req.user.id;
     console.log(userId, "LLLLLLL");
-    const coupons = await Coupon.find({ "claimedBy.user": userId });
-    if (!coupons) {
-      return res.status(404).json({ message: "Coupons not found" });
+    const now = new Date();
+
+    const coupons = await Coupon.find({
+      claimedBy: {
+        $elemMatch: {
+          user: userId,
+          expiresAt: { $gt: now },
+        },
+      },
+    });
+
+    if (coupons.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No active claimed coupons found" });
     }
-    res.status(200).json(coupons);
+
+    const activeCoupons = coupons.map((coupon) => {
+      const couponObject = coupon.toObject();
+      couponObject.claimedBy = couponObject.claimedBy.filter(
+        (claim) => claim.user.toString() === userId && claim.expiresAt > now
+      );
+      return couponObject;
+    });
+
+    res.status(200).json(activeCoupons);
   } catch (error) {
     res.status(500).json({
       message: "Error fetching user's claimed coupons",
@@ -98,6 +118,7 @@ export const claimCoupon = async (req, res) => {
     if (!couponId) {
       return res.status(400).json({ message: "Coupon ID is required" });
     }
+
     const coupon = await Coupon.findById(couponId);
     if (!coupon) {
       return res.status(404).json({ message: "Coupon not found" });
@@ -112,20 +133,26 @@ export const claimCoupon = async (req, res) => {
     }
 
     const alreadyClaimed = coupon.claimedBy.some(
-      (claim) => claim.user.toString() === userId
+      (claim) =>
+        claim.user.toString() === userId && new Date() < claim.expiresAt
     );
     if (alreadyClaimed) {
       return res
         .status(400)
-        .json({ message: "User has already claimed this coupon" });
+        .json({ message: "User already has an active claim for this coupon" });
     }
 
+    const claimExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     coupon.availableCoupons -= 1;
-    coupon.claimedBy.push({ user: userId });
+    coupon.claimedBy.push({ user: userId, expiresAt: claimExpiresAt });
 
     await coupon.save();
 
-    res.status(200).json({ message: "Coupon claimed successfully" });
+    res.status(200).json({
+      message: "Coupon claimed successfully",
+      expiresAt: claimExpiresAt,
+    });
   } catch (error) {
     console.error("Error claiming coupon:", error);
     res

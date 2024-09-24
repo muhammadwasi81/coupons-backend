@@ -1,20 +1,9 @@
 import mongoose from "mongoose";
 
 const couponSchema = new mongoose.Schema({
-  businessName: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  businessInstagram: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  instructions: {
-    type: String,
-    trim: true,
-  },
+  businessName: { type: String, required: true, trim: true },
+  businessInstagram: { type: String, required: true, trim: true },
+  instructions: { type: String, trim: true },
   categories: {
     coffee: Boolean,
     breakfast: Boolean,
@@ -23,26 +12,10 @@ const couponSchema = new mongoose.Schema({
     lifestyle: Boolean,
     beauty: Boolean,
   },
-  totalCoupons: {
-    type: Number,
-    required: true,
-    min: 1,
-  },
-  availableCoupons: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
-  minPurchaseQuantity: {
-    type: Number,
-    required: true,
-    min: 1,
-  },
-  couponValue: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
+  totalCoupons: { type: Number, required: true, min: 1 },
+  availableCoupons: { type: Number, required: true, min: 0 },
+  minPurchaseQuantity: { type: Number, required: true, min: 1 },
+  couponValue: { type: Number, required: true, min: 0 },
   couponValueUnit: {
     type: String,
     enum: ["percentage", "fixed"],
@@ -59,10 +32,7 @@ const couponSchema = new mongoose.Schema({
       },
     },
   ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  createdAt: { type: Date, default: Date.now },
   expiresAt: {
     type: Date,
     default: function () {
@@ -71,14 +41,9 @@ const couponSchema = new mongoose.Schema({
   },
   claimedBy: [
     {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-      claimedAt: {
-        type: Date,
-        default: Date.now,
-      },
+      user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      claimedAt: { type: Date, default: Date.now },
+      expiresAt: { type: Date },
     },
   ],
 });

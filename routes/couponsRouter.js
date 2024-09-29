@@ -18,7 +18,7 @@ router.delete("/:id", deleteCoupon);
 router.put("/:id", updateCoupon);
 
 // user routes
-router.get("/all-coupons", userMiddleware, getAllCoupons);
+router.get("/all-coupons", getAllCoupons);
 router.post("/claim", userMiddleware, claimCoupon);
 router.get("/user-coupons", userMiddleware, getUserClaimedCoupons);
 

@@ -6,14 +6,16 @@ import {
   getAllCoupons,
   getUserClaimedCoupons,
   updateCoupon,
+  uploadCouponImages,
 } from "../controllers/couponsController.js";
-import upload from "../config/cloudinaryConfig.js";
+import { upload } from "../config/cloudinaryConfig.js";
 import { userMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // Admin routes
 router.post("/create", upload.array("images", 3), createCoupon);
+router.post("/upload-images", upload.array("images", 3), uploadCouponImages);
 router.delete("/:id", deleteCoupon);
 router.put("/:id", updateCoupon);
 

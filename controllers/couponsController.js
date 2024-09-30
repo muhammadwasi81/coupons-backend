@@ -1,5 +1,5 @@
 import Coupon from "../models/couponsModel.js";
-
+import { cloudinary } from "../config/cloudinaryConfig.js";
 export const createCoupon = async (req, res) => {
   try {
     const {
@@ -236,5 +236,35 @@ export const updateCoupon = async (req, res) => {
       message: "Error updating coupon",
       error: error.message,
     });
+  }
+};
+
+export const uploadCouponImages = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: "No images uploaded" });
+    }
+
+    if (req.files.length > 3) {
+      return res.status(400).json({ message: "Maximum 3 images allowed" });
+    }
+
+    const uploadResults = await Promise.all(
+      req.files.map((file) => cloudinary.uploader.upload(file.path))
+    );
+
+    const imageUrls = uploadResults.map((result) => result.secure_url);
+
+    console.log(imageUrls, "imageUrls");
+
+    res.status(200).json({
+      message: "Images uploaded successfully",
+      images: imageUrls,
+    });
+  } catch (error) {
+    console.error("Error uploading coupon images:", error);
+    res
+      .status(400)
+      .json({ message: "Error uploading images", error: error.message });
   }
 };

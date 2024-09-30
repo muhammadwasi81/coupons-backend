@@ -36,7 +36,7 @@ const couponSchema = new mongoose.Schema({
   expiresAt: {
     type: Date,
     default: function () {
-      return new Date(+this.createdAt + 24 * 60 * 60 * 1000);
+      return new Date(+this.createdAt + 30 * 24 * 60 * 60 * 1000);
     },
   },
   claimedBy: [

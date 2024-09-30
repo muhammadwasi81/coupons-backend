@@ -260,3 +260,42 @@ export const resetPassword = async (req, res) => {
       .json({ message: "Error resetting password", error: error.message });
   }
 };
+
+export const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Please provide email and password" });
+    }
+
+    const admin = await User.findOne({ email, role: "admin" });
+
+    if (!admin) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, admin.password);
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = generateToken();
+
+    res.status(200).json({
+      message: "Admin logged in successfully",
+      token,
+      admin: {
+        id: admin._id,
+        email: admin.email,
+        role: admin.role,
+      },
+    });
+  } catch (error) {
+    console.error("Admin login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

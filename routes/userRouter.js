@@ -6,14 +6,15 @@ import {
   updateProfile,
   forgotPassword,
   resetPassword,
-  adminLogin,
+  getAllUsers,
+  blockUser,
 } from "../controllers/userController.js";
 import { userMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-
-//Admin routes
-router.post("/admin-login", adminLogin);
+// Admi routes
+router.get("/all-users", getAllUsers);
+router.post("/block/:userId", blockUser);
 
 // user routes
 router.post("/signup", signup);

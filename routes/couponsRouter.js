@@ -17,7 +17,7 @@ const router = express.Router();
 router.post("/create", upload.array("images", 3), createCoupon);
 router.post("/upload-images", upload.array("images", 3), uploadCouponImages);
 router.delete("/:id", deleteCoupon);
-router.put("/:id", updateCoupon);
+router.put("/:id", upload.array("images", 3), updateCoupon);
 
 // user routes
 router.get("/all-coupons", getAllCoupons);

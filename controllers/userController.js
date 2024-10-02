@@ -52,7 +52,6 @@ export const login = async (req, res) => {
         .json({ message: "Email or Instagram handle is required" });
     }
 
-    // Check if the input is an email or Instagram handle
     const isEmail = emailOrInstagram.includes("@");
 
     let user;
@@ -66,6 +65,10 @@ export const login = async (req, res) => {
 
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({ message: "User is blocked" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -261,41 +264,37 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-export const adminLogin = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Please provide email and password" });
-    }
-
-    const admin = await User.findOne({ email, role: "admin" });
-
-    if (!admin) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    const isPasswordCorrect = await bcrypt.compare(password, admin.password);
-
-    if (!isPasswordCorrect) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    const token = generateToken();
-
-    res.status(200).json({
-      message: "Admin logged in successfully",
-      token,
-      admin: {
-        id: admin._id,
-        email: admin.email,
-        role: admin.role,
-      },
-    });
+    const users = await User.find({ role: { $ne: "admin" } }).select(
+      "-password"
+    );
+    res.status(200).json({ users });
   } catch (error) {
-    console.error("Admin login error:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Get all users error:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching users", error: error.message });
+  }
+};
+
+export const blockUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.isBlocked = true;
+    await user.save();
+
+    res.status(200).json({ message: "User blocked successfully" });
+  } catch (error) {
+    console.error("Block user error:", error);
+    res
+      .status(500)
+      .json({ message: "Error blocking user", error: error.message });
   }
 };

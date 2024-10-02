@@ -177,7 +177,7 @@ export const deleteCoupon = async (req, res) => {
 
 export const updateCoupon = async (req, res) => {
   try {
-    const { id } = req.params;
+    const couponId = req.params.id;
     const {
       businessName,
       businessInstagram,
@@ -189,12 +189,6 @@ export const updateCoupon = async (req, res) => {
       couponValueUnit,
     } = req.body;
 
-    const coupon = await Coupon.findById(id);
-
-    if (!coupon) {
-      return res.status(404).json({ message: "Coupon not found" });
-    }
-
     const categoriesObject = {
       coffee: categories === "coffee",
       breakfast: categories === "breakfast",
@@ -204,38 +198,39 @@ export const updateCoupon = async (req, res) => {
       beauty: categories === "beauty",
     };
 
-    const updateData = {
-      businessName: businessName || coupon.businessName,
-      businessInstagram: businessInstagram || coupon.businessInstagram,
-      instructions: instructions || coupon.instructions,
+    const couponData = {
+      businessName,
+      businessInstagram,
+      instructions,
       categories: categoriesObject,
-      totalCoupons: totalCoupons ? parseInt(totalCoupons) : coupon.totalCoupons,
-      minPurchaseQuantity: minPurchaseQuantity
-        ? parseInt(minPurchaseQuantity)
-        : coupon.minPurchaseQuantity,
-      couponValue: couponValue ? parseFloat(couponValue) : coupon.couponValue,
-      couponValueUnit: couponValueUnit || coupon.couponValueUnit,
+      totalCoupons: parseInt(totalCoupons),
+      minPurchaseQuantity: parseInt(minPurchaseQuantity),
+      couponValue: parseFloat(couponValue),
+      couponValueUnit,
     };
 
     if (req.files && req.files.length > 0) {
-      updateData.images = req.files.map((file) => file.path);
+      couponData.images = req.files.map((file) => file.path);
     }
 
-    const updatedCoupon = await Coupon.findByIdAndUpdate(id, updateData, {
+    console.log("Updated Coupon Data:", couponData);
+
+    const updatedCoupon = await Coupon.findByIdAndUpdate(couponId, couponData, {
       new: true,
-      runValidators: true,
     });
 
-    res.status(200).json({
-      message: "Coupon updated successfully",
-      coupon: updatedCoupon,
-    });
+    if (!updatedCoupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Coupon updated successfully", coupon: updatedCoupon });
   } catch (error) {
     console.error("Error updating coupon:", error);
-    res.status(400).json({
-      message: "Error updating coupon",
-      error: error.message,
-    });
+    res
+      .status(400)
+      .json({ message: "Error updating coupon", error: error.message });
   }
 };
 

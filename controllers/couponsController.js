@@ -236,30 +236,32 @@ export const updateCoupon = async (req, res) => {
 
 export const uploadCouponImages = async (req, res) => {
   try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: "No images uploaded" });
+    const { couponId } = req.params;
+    console.log(couponId);
+    if (!req.file) {
+      return res.status(400).json({ message: "No image uploaded" });
     }
 
-    if (req.files.length > 3) {
-      return res.status(400).json({ message: "Maximum 3 images allowed" });
+    const coupon = await Coupon.findById(couponId);
+    console.log(coupon, "coupon");
+    if (!coupon) {
+      return res.status(404).json({ message: "Coupon not found" });
     }
 
-    const uploadResults = await Promise.all(
-      req.files.map((file) => cloudinary.uploader.upload(file.path))
-    );
+    const uploadResult = await cloudinary.uploader.upload(req.file.path);
 
-    const imageUrls = uploadResults.map((result) => result.secure_url);
+    coupon.images.push(uploadResult.secure_url);
 
-    console.log(imageUrls, "imageUrls");
+    await coupon.save();
 
     res.status(200).json({
-      message: "Images uploaded successfully",
-      images: imageUrls,
+      message: "Image uploaded successfully",
+      coupon: coupon,
     });
   } catch (error) {
-    console.error("Error uploading coupon images:", error);
+    console.error("Error uploading coupon image:", error);
     res
       .status(400)
-      .json({ message: "Error uploading images", error: error.message });
+      .json({ message: "Error uploading image", error: error.message });
   }
 };

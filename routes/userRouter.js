@@ -7,14 +7,14 @@ import {
   forgotPassword,
   resetPassword,
   getAllUsers,
-  blockUser,
+  toggleUserBlock,
 } from "../controllers/userController.js";
 import { userMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 // Admi routes
 router.get("/all-users", getAllUsers);
-router.post("/block/:userId", blockUser);
+router.post("/toggle-block/:userId", toggleUserBlock);
 
 // user routes
 router.post("/signup", signup);

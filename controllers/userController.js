@@ -278,7 +278,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-export const blockUser = async (req, res) => {
+export const toggleUserBlock = async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -287,14 +287,18 @@ export const blockUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    user.isBlocked = true;
+    user.isBlocked = !user.isBlocked;
     await user.save();
 
-    res.status(200).json({ message: "User blocked successfully" });
+    const action = user.isBlocked ? "blocked" : "unblocked";
+    res.status(200).json({ message: `User ${action} successfully` });
   } catch (error) {
-    console.error("Block user error:", error);
+    console.error("Toggle user block error:", error);
     res
       .status(500)
-      .json({ message: "Error blocking user", error: error.message });
+      .json({
+        message: "Error toggling user block status",
+        error: error.message,
+      });
   }
 };

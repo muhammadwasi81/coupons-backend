@@ -4,14 +4,13 @@ const couponSchema = new mongoose.Schema({
   businessName: { type: String, required: true, trim: true },
   businessInstagram: { type: String, required: true, trim: true },
   instructions: { type: String, trim: true },
-  categories: {
-    coffee: Boolean,
-    breakfast: Boolean,
-    meal: Boolean,
-    dinner: Boolean,
-    lifestyle: Boolean,
-    beauty: Boolean,
-  },
+  categories: [
+    {
+      type: String,
+      enum: ["coffee", "breakfast", "meal", "dinner", "lifestyle", "beauty"],
+      required: true,
+    },
+  ],
   totalCoupons: { type: Number, required: true, min: 1 },
   availableCoupons: { type: Number, required: true, min: 0 },
   minPurchaseQuantity: { type: Number, required: true, min: 1 },

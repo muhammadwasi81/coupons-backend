@@ -13,24 +13,39 @@ export const createCoupon = async (req, res) => {
       couponValueUnit,
     } = req.body;
 
-    const categoriesArray = Array.isArray(categories)
-      ? categories
-      : [categories];
+    let categoriesArray;
+    try {
+      categoriesArray = JSON.parse(categories);
+    } catch (error) {
+      return res.status(400).json({ message: "Invalid categories format" });
+    }
 
-    const categoriesObject = {
-      coffee: categoriesArray.includes("coffee"),
-      breakfast: categoriesArray.includes("breakfast"),
-      meal: categoriesArray.includes("meal"),
-      dinner: categoriesArray.includes("dinner"),
-      lifestyle: categoriesArray.includes("lifestyle"),
-      beauty: categoriesArray.includes("beauty"),
-    };
+    if (!Array.isArray(categoriesArray)) {
+      return res.status(400).json({ message: "Categories must be an array" });
+    }
+
+    const validCategories = [
+      "coffee",
+      "breakfast",
+      "meal",
+      "dinner",
+      "lifestyle",
+      "beauty",
+    ];
+    const invalidCategories = categoriesArray.filter(
+      (cat) => !validCategories.includes(cat)
+    );
+    if (invalidCategories.length > 0) {
+      return res.status(400).json({
+        message: `Invalid categories: ${invalidCategories.join(", ")}`,
+      });
+    }
 
     const couponData = {
       businessName,
       businessInstagram,
       instructions,
-      categories: categoriesObject,
+      categories: categoriesArray,
       totalCoupons: parseInt(totalCoupons),
       availableCoupons: parseInt(totalCoupons),
       minPurchaseQuantity: parseInt(minPurchaseQuantity),
@@ -193,24 +208,39 @@ export const updateCoupon = async (req, res) => {
       couponValueUnit,
     } = req.body;
 
-    const categoriesArray = Array.isArray(categories)
-      ? categories
-      : [categories];
+    let categoriesArray;
+    try {
+      categoriesArray = JSON.parse(categories);
+    } catch (error) {
+      return res.status(400).json({ message: "Invalid categories format" });
+    }
 
-    const categoriesObject = {
-      coffee: categoriesArray.includes("coffee"),
-      breakfast: categoriesArray.includes("breakfast"),
-      meal: categoriesArray.includes("meal"),
-      dinner: categoriesArray.includes("dinner"),
-      lifestyle: categoriesArray.includes("lifestyle"),
-      beauty: categoriesArray.includes("beauty"),
-    };
+    if (!Array.isArray(categoriesArray)) {
+      return res.status(400).json({ message: "Categories must be an array" });
+    }
+
+    const validCategories = [
+      "coffee",
+      "breakfast",
+      "meal",
+      "dinner",
+      "lifestyle",
+      "beauty",
+    ];
+    const invalidCategories = categoriesArray.filter(
+      (cat) => !validCategories.includes(cat)
+    );
+    if (invalidCategories.length > 0) {
+      return res.status(400).json({
+        message: `Invalid categories: ${invalidCategories.join(", ")}`,
+      });
+    }
 
     const couponData = {
       businessName,
       businessInstagram,
       instructions,
-      categories: categoriesObject,
+      categories: categoriesArray,
       totalCoupons: parseInt(totalCoupons),
       minPurchaseQuantity: parseInt(minPurchaseQuantity),
       couponValue: parseFloat(couponValue),

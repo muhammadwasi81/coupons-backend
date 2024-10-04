@@ -13,13 +13,17 @@ export const createCoupon = async (req, res) => {
       couponValueUnit,
     } = req.body;
 
+    const categoriesArray = Array.isArray(categories)
+      ? categories
+      : [categories];
+
     const categoriesObject = {
-      coffee: categories === "coffee",
-      breakfast: categories === "breakfast",
-      meal: categories === "meal",
-      dinner: categories === "dinner",
-      lifestyle: categories === "lifestyle",
-      beauty: categories === "beauty",
+      coffee: categoriesArray.includes("coffee"),
+      breakfast: categoriesArray.includes("breakfast"),
+      meal: categoriesArray.includes("meal"),
+      dinner: categoriesArray.includes("dinner"),
+      lifestyle: categoriesArray.includes("lifestyle"),
+      beauty: categoriesArray.includes("beauty"),
     };
 
     const couponData = {
@@ -189,13 +193,17 @@ export const updateCoupon = async (req, res) => {
       couponValueUnit,
     } = req.body;
 
+    const categoriesArray = Array.isArray(categories)
+      ? categories
+      : [categories];
+
     const categoriesObject = {
-      coffee: categories === "coffee",
-      breakfast: categories === "breakfast",
-      meal: categories === "meal",
-      dinner: categories === "dinner",
-      lifestyle: categories === "lifestyle",
-      beauty: categories === "beauty",
+      coffee: categoriesArray.includes("coffee"),
+      breakfast: categoriesArray.includes("breakfast"),
+      meal: categoriesArray.includes("meal"),
+      dinner: categoriesArray.includes("dinner"),
+      lifestyle: categoriesArray.includes("lifestyle"),
+      beauty: categoriesArray.includes("beauty"),
     };
 
     const couponData = {

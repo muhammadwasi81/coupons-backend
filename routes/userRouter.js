@@ -8,6 +8,7 @@ import {
   resetPassword,
   getAllUsers,
   toggleUserBlock,
+  deleteAccount,
 } from "../controllers/userController.js";
 import { userMiddleware } from "../middleware/authMiddleware.js";
 
@@ -23,5 +24,6 @@ router.get("/me", userMiddleware, getMe);
 router.put("/update-profile", userMiddleware, updateProfile);
 router.post("/forgot-password", forgotPassword);
 router.put("/reset-password/:resetToken", resetPassword);
+router.delete("/delete-account", userMiddleware, deleteAccount);
 
 export default router;

@@ -39,7 +39,6 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    console.log("Request body:", req.body);
     const { emailOrInstagram, password } = req.body;
 
     if (!password) {
@@ -60,8 +59,6 @@ export const login = async (req, res) => {
     } else {
       user = await User.findOne({ instagramHandle: emailOrInstagram });
     }
-
-    console.log("User found:", user);
 
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -94,7 +91,6 @@ export const login = async (req, res) => {
 export const getMe = async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log(userId);
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -117,7 +113,6 @@ export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const { email, instagramHandle, currentPassword, newPassword } = req.body;
-    console.log(req.body);
     if (!email && !instagramHandle && !newPassword) {
       return res.status(400).json({ message: "No fields to update" });
     }
@@ -188,13 +183,11 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
-    console.log(user);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const resetToken = crypto.randomBytes(20).toString("hex");
-    console.log(resetToken);
     user.resetPasswordToken = crypto
       .createHash("sha256")
       .update(resetToken)
@@ -216,7 +209,6 @@ export const forgotPassword = async (req, res) => {
 
       res.status(200).json({ message: "Email sent Successfully" });
     } catch (error) {
-      console.log(error);
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
 
@@ -294,11 +286,27 @@ export const toggleUserBlock = async (req, res) => {
     res.status(200).json({ message: `User ${action} successfully` });
   } catch (error) {
     console.error("Toggle user block error:", error);
+    res.status(500).json({
+      message: "Error toggling user block status",
+      error: error.message,
+    });
+  }
+};
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.findByIdAndDelete(req.user.id);
+
+    res.status(200).json({ message: "Account deleted successfully" });
+  } catch (error) {
     res
       .status(500)
-      .json({
-        message: "Error toggling user block status",
-        error: error.message,
-      });
+      .json({ message: "Error deleting account", error: error.message });
   }
 };
